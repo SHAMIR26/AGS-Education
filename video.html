@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Course Videos</title>
+</head>
+<body>
+    <div id="playlist"></div>
+    <script>
+        // filepath: c:\Users\saadr\Desktop\AGS\video.html
+        (async function() {
+            const params = new URLSearchParams(window.location.search);
+            const title = decodeURIComponent(params.get('title') || '');
+            const isAdmin = params.get('admin') === '1';
+            const user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+            if (!user) {
+                document.getElementById('playlist').innerHTML = '<p>Please log in to view this course.</p>';
+                return;
+            }
+            let url = `http://localhost:3000/api/playlist/${encodeURIComponent(title)}?email=${encodeURIComponent(user.email)}&role=${encodeURIComponent(user.role)}`;
+            let data = {};
+            try {
+                const res = await fetch(url);
+                data = await res.json();
+            } catch {
+                document.getElementById('playlist').innerHTML = '<p>Failed to load playlist.</p>';
+                return;
+            }
+            if (data.error) {
+                document.getElementById('playlist').innerHTML = `<p style="color:#c00">${data.error}</p>`;
+                return;
+            }
+            const videos = data.videos || [];
+            if (!videos.length) {
+                document.getElementById('playlist').innerHTML = `<h2>${title}</h2><p>No videos found for this course.</p>`;
+                return;
+            }
+            document.getElementById('playlist').innerHTML = `<h2>${title} Playlist</h2><ul>` +
+                videos.map((v, i) =>
+                    `<li>
+                        <video src="http://localhost:3000${v}" controls style="max-width:300px;display:block;margin:0.5rem 0;"></video>
+                        ${isAdmin ? `<button onclick="deleteVideo(${i})">Delete</button>` : ''}
+                    </li>`
+                ).join('') + '</ul>';
+
+            window.deleteVideo = async function(idx) {
+                if (!isAdmin) return;
+                if (!confirm('Delete this video?')) return;
+                try {
+                    const res = await fetch(`http://localhost:3000/api/playlist/${encodeURIComponent(title)}/${idx}`, {
+                        method: 'DELETE',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({ email: user.email })
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert(result.error || 'Failed to delete video.');
+                    }
+                } catch {
+                    alert('Error deleting video.');
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

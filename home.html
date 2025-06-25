@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AGS Online Education Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            background: #f4f6fa;
+        }
+        header {
+            background: #2d3e50;
+            color: #fff;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .menu-icon {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            width: 30px;
+            height: 25px;
+            justify-content: space-between;
+        }
+        .menu-icon span {
+            height: 4px;
+            background: #fff;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            right: -220px;
+            width: 200px;
+            height: 100%;
+            background: #34495e;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            padding-top: 70px;
+            transition: right 0.3s;
+            z-index: 100;
+        }
+        nav.open {
+            right: 0;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            width: 100%;
+            display: block;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+        nav a:hover {
+            background: #22313f;
+        }
+        .hero {
+            text-align: center;
+            margin: 4rem 1rem 2rem 1rem;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            color: #2d3e50;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+        .cta-btn {
+            background: #2d3e50;
+            color: #fff;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .cta-btn:hover {
+            background: #22313f;
+        }
+        .attract-box {
+            background: linear-gradient(90deg, #2d3e50 60%, #34495e 100%);
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: 500;
+            padding: 1.2rem 1rem;
+            border-radius: 12px;
+            margin: 2rem auto 2rem auto;
+            max-width: 500px;
+            box-shadow: 0 2px 12px #0002;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        @media (min-width: 700px) {
+            .hero h1 { font-size: 3.5rem; }
+            nav { width: 250px; right: -270px; }
+        }
+        /* Modal styles */
+        #modalOverlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5);
+            justify-content: center; align-items: center;
+        }
+        #modalBox {
+            background: #fff;
+            color: #2d3e50;
+            padding: 2rem 2.5rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 250px;
+            box-shadow: 0 2px 12px #0003;
+        }
+        #modalBox button {
+            margin-top: 1.5rem;
+            padding: 0.5rem 2rem;
+            background: #2d3e50;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        #modalBox button:hover { background: #22313f; }
+
+        /* Hamburger Menu */
+        .hamburger-menu {
+            display: flex !important; /* Always show for testing */
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 1rem;
+        }
+        .hamburger-menu button {
+            background: #2d3e50;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+        .hamburger-menu button:hover {
+            background: #22313f;
+        }
+        .hamburger-menu #menu-options {
+            display: none;
+            flex-direction: column;
+            background: #fff;
+            color: #2d3e50;
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px #0002;
+            z-index: 1000;
+        }
+        .hamburger-menu #menu-options a {
+            padding: 0.8rem 1.2rem;
+            text-decoration: none;
+            color: #2d3e50;
+            transition: background 0.2s;
+        }
+        .hamburger-menu #menu-options a:hover {
+            background: #f4f6fa;
+        }
+        @media (max-width: 700px) {
+            .menu-icon {
+                display: none;
+            }
+            .hamburger-menu {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">AGS Education</div>
+        <div class="menu-icon" id="menuIcon" aria-label="Open navigation" tabindex="0" role="button">
+            <!-- Three line (hamburger) icon can be styled with CSS or use spans here -->
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </header>
+    <nav id="sideNav" aria-label="Main navigation">
+        <span id="closeNav" style="font-size:2rem;cursor:pointer;padding:0 1rem;" aria-label="Close navigation" tabindex="0" role="button">&times;</span>
+        <a href="home.html" id="homeLink">Home</a>
+        <a href="registration.html" id="regLink">Registration</a>
+        <a href="login.html" id="loginLink">Log In</a>
+        <a href="course.html" id="allCoursesLink">All Courses</a>
+        <a href="class.html" id="myCoursesLink">My Courses</a>
+        <a href="account.html" id="accountLink">My Account</a>
+        <a href="teacher.html" id="teacherRegLink">Teacher Registration</a>
+        <a href="panel.html" id="panelLink">Panel</a> <!-- Added Panel link -->
+        <a href="logout.html" id="logoutLink" style="display:none;">Log Out</a>
+    </nav>
+    <section class="hero" style="background: url('https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat; border-radius: 18px; box-shadow: 0 4px 24px #0002; padding: 4rem 1rem 2rem 1rem; margin-top:2rem;">
+        <h1 style="color:#fff;text-shadow:0 2px 8px #0008;">Welcome to AGS Online Education Platform</h1>
+        <a href="registration.html"><button class="cta-btn" style="box-shadow:0 2px 8px #0003;">Get Started</button></a>
+    </section>
+
+    <!-- Features Section -->
+    <section style="max-width:1000px;margin:3rem auto 2rem auto;display:flex;flex-wrap:wrap;justify-content:space-around;gap:2rem;">
+        <div style="flex:1 1 220px;min-width:220px;max-width:300px;background:#fff;border-radius:12px;box-shadow:0 2px 12px #0001;padding:2rem;text-align:center;">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" alt="Expert Teachers" style="width:64px;height:64px;margin-bottom:1rem;">
+            <h3 style="color:#2d3e50;">Expert Teachers</h3>
+            <p style="color:#555;">Learn from certified professionals with years of experience.</p>
+        </div>
+        <div style="flex:1 1 220px;min-width:220px;max-width:300px;background:#fff;border-radius:12px;box-shadow:0 2px 12px #0001;padding:2rem;text-align:center;">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135789.png" alt="Flexible Courses" style="width:64px;height:64px;margin-bottom:1rem;">
+            <h3 style="color:#2d3e50;">Flexible Courses</h3>
+            <p style="color:#555;">Choose from a wide range of subjects and learn at your own pace.</p>
+        </div>
+        <div style="flex:1 1 220px;min-width:220px;max-width:300px;background:#fff;border-radius:12px;box-shadow:0 2px 12px #0001;padding:2rem;text-align:center;">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135773.png" alt="Career Growth" style="width:64px;height:64px;margin-bottom:1rem;">
+            <h3 style="color:#2d3e50;">Career Growth</h3>
+            <p style="color:#555;">Boost your skills and open new career opportunities.</p>
+        </div>
+    </section>
+
+    <!-- Partners/Testimonials Section -->
+    <section style="max-width:900px;margin:2rem auto 3rem auto;text-align:center;">
+        <h3 style="color:#2d3e50;margin-bottom:1.5rem;">Trusted by Learners Worldwide</h3>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/200px-Microsoft_logo.svg.png" alt="Microsoft" style="height:40px;margin:0 1.5rem;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/200px-Google_2015_logo.svg.png" alt="Google" style="height:40px;margin:0 1.5rem;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Facebook_f_logo_%282019%29.svg/200px-Facebook_f_logo_%282019%29.svg.png" alt="Facebook" style="height:40px;margin:0 1.5rem;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/200px-Netflix_2015_logo.svg.png" alt="Netflix" style="height:40px;margin:0 1.5rem;">
+    </section>
+
+    <!-- Modal for login required -->
+    <div id="modalOverlay">
+        <div id="modalBox">
+            <div id="modalMsg">Login Required</div>
+            <button onclick="document.getElementById('modalOverlay').style.display='none'">OK</button>
+        </div>
+    </div>
+    <script src="home.js"></script>
+    <script>
+    // filepath: c:\Users\saadr\Desktop\AGS\home.html
+    document.addEventListener('DOMContentLoaded', function() {
+        // Keyboard accessibility for menu
+        document.getElementById('menuIcon').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') this.click();
+        });
+        document.getElementById('closeNav').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') this.click();
+        });
+
+        // Show/hide nav links based on login status
+        let user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+        const regLink = document.getElementById('regLink');
+        const loginLink = document.getElementById('loginLink');
+        const logoutLink = document.getElementById('logoutLink');
+        const myCoursesLink = document.getElementById('myCoursesLink');
+        const accountLink = document.getElementById('accountLink');
+
+        myCoursesLink.style.display = '';
+        accountLink.style.display = '';
+
+        if (user) {
+            regLink.style.display = 'none';
+            loginLink.style.display = 'none';
+            logoutLink.style.display = '';
+        } else {
+            regLink.style.display = '';
+            loginLink.style.display = '';
+            logoutLink.style.display = 'none';
+        }
+
+        // Restrict navigation for unauthenticated users
+        const protectedLinks = [
+            'allCoursesLink', 'myCoursesLink', 'accountLink', 'logoutLink'
+        ];
+        protectedLinks.forEach(id => {
+            const link = document.getElementById(id);
+            if (link) {
+                link.addEventListener('click', function(e) {
+                    user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+                    if (!user) {
+                        e.preventDefault();
+                        document.getElementById('modalOverlay').style.display = 'flex';
+                    }
+                });
+            }
+        });
+
+        // Role-based redirect for All Courses
+        const allCoursesLink = document.getElementById('allCoursesLink');
+        if (allCoursesLink) {
+            allCoursesLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+                if (!user) {
+                    window.location.href = "login.html";
+                    return;
+                }
+                if (user.role === 'Teacher' || user.role === 'Admin') {
+                    window.location.href = "course.html";
+                } else if (user.role === 'Student') {
+                    window.location.href = "purchase.html";
+                } else {
+                    window.location.href = "login.html";
+                }
+            });
+        }
+
+        // Hamburger Menu functionality
+        const menuBtn = document.getElementById('menu-btn');
+        const menuOptions = document.getElementById('menu-options');
+        menuBtn.onclick = () => {
+          menuOptions.style.display = menuOptions.style.display === 'none' ? 'block' : 'none';
+        };
+        // Optional: Hide menu when clicking outside
+        document.addEventListener('click', function(event) {
+          if (!menuBtn.contains(event.target) && !menuOptions.contains(event.target)) {
+            menuOptions.style.display = 'none';
+          }
+        });
+    });
+    </script>
+</body>
+</html>

@@ -158,3 +158,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Use process.env.PORT for Render, fallback to 3000 locally
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'home.html'));
+});

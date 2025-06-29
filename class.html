@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Courses - AGS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Roboto', Arial, sans-serif; background: #f4f6fa; margin: 0; }
+        .container { max-width: 700px; margin: 3rem auto; background: #fff; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 8px #0001; }
+        h2 { color: #2d3e50; text-align: center; }
+        .course-list { list-style: none; padding: 0; }
+        .course-item { background: #f4f6fa; margin-bottom: 1rem; padding: 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .actions button { margin-left: 0.5rem; }
+        .menu-icon {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            width: 30px;
+            height: 25px;
+            justify-content: space-between;
+            margin: 1rem;
+        }
+        .menu-icon span {
+            height: 4px;
+            background: #fff; /* <-- Change from #2d3e50 to #fff */
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            right: -220px;
+            width: 200px;
+            height: 100%;
+            background: #34495e;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            padding-top: 70px;
+            transition: right 0.3s;
+            z-index: 100;
+        }
+        nav.open {
+            right: 0;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            width: 100%;
+            display: block;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+        nav a:hover {
+            background: #22313f;
+        }
+        @media (min-width: 700px) {
+            nav { width: 250px; right: -270px; }
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #2d3e50; color: #fff; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+        <div class="logo" style="font-size: 2rem; font-weight: bold; letter-spacing: 2px;">AGS Education</div>
+        <div class="menu-icon" id="menuIcon" aria-label="Open navigation" tabindex="0" role="button">
+            <span style="width:100%"></span>
+            <span style="width:100%"></span>
+            <span style="width:100%"></span>
+        </div>
+    </header>
+    <nav id="sideNav" aria-label="Main navigation">
+        <span id="closeNav" style="font-size:2rem;cursor:pointer;padding:0 1rem;" aria-label="Close navigation" tabindex="0" role="button">&times;</span>
+        <a href="home.html" id="homeLink">Home</a>
+        <a href="registration.html" id="regLink">Registration</a>
+        <a href="login.html" id="loginLink">Log In</a>
+        <a href="course.html" id="allCoursesLink">All Courses</a>
+        <a href="class.html" id="myCoursesLink">My Courses</a>
+        <a href="account.html" id="accountLink">My Account</a>
+        <a href="logout.html" id="logoutLink" style="display:none;">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>My Courses</h2>
+        <ul class="course-list" id="myCourses"></ul>
+        <div id="launchCourseLink" style="text-align:center;margin-top:2rem;"></div>
+    </div>
+    <script src="home.js"></script>
+    <script>
+const BASE_URL = window.location.origin.includes('localhost')
+    ? 'http://localhost:3000'
+    : window.location.origin;
+
+document.addEventListener('DOMContentLoaded', async function() {
+        const myCourses = document.getElementById('myCourses');
+        const launchCourseLink = document.getElementById('launchCourseLink');
+        const user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+        if (!user || !user.role) {
+            myCourses.innerHTML = `<li style="color:#888;text-align:center;">Please log in to see your courses.</li>`;
+            launchCourseLink.innerHTML = '';
+            return;
+        }
+        // Fetch courses from backend
+        let courses = [];
+        try {
+            const res = await fetch(`${BASE_URL}/api/mycourses?email=${encodeURIComponent(user.email)}&role=${encodeURIComponent(user.role)}`);
+            courses = await res.json();
+        } catch {
+            myCourses.innerHTML = `<li style="color:#c00;text-align:center;">Failed to load courses.</li>`;
+            return;
+        }
+        if (user.role === 'Student') {
+            if (!courses.length) {
+                myCourses.innerHTML = `<li style="color:#888;text-align:center;">No courses purchased.</li>`;
+            } else {
+                myCourses.innerHTML = courses.map(title =>
+                    `<li class="course-item">
+                        ${title}
+                        <button onclick="joinCourse('${encodeURIComponent(title)}')">Join</button>
+                    </li>`
+                ).join('');
+            }
+            launchCourseLink.innerHTML = '';
+        } else if (user.role === 'Teacher' || user.role === 'Admin') {
+            if (!courses.length) {
+                myCourses.innerHTML = `<li style="color:#888;text-align:center;">No courses launched.</li>`;
+            } else {
+                myCourses.innerHTML = courses.map(c =>
+                    `<li class="course-item">
+                        ${c.title}
+                        <button onclick="viewPlaylist('${encodeURIComponent(c.title)}')">View Playlist</button>
+                        <button onclick="addVideosToCourse('${encodeURIComponent(c.title)}')">Add Videos</button>
+                    </li>`
+                ).join('');
+            }
+            launchCourseLink.innerHTML = `<a href="course.html"><button>Launch a New Course</button></a>`;
+        }
+    });
+
+// Sync local students to backend if not present (quick fix)
+const localStudents = JSON.parse(localStorage.getItem('ags_students') || '[]');
+for (const s of localStudents) {
+    fetch(`${BASE_URL}/api/register/student`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+            name: s.name,
+            email: s.email,
+            mobile: s.mobile,
+            password: s.password
+        })
+    });
+}
+
+function viewPlaylist(title) {
+    window.location.href = `video.html?title=${title}&admin=1`;
+}
+function joinCourse(title) {
+    window.location.href = `video.html?title=${title}`;
+}
+async function addVideosToCourse(title) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'video/*';
+    input.multiple = true;
+    input.onchange = async function() {
+        const files = Array.from(input.files);
+        if (!files.length) return;
+        const formData = new FormData();
+        formData.append('title', decodeURIComponent(title)); // <-- Add this line
+        files.forEach(f => formData.append('videos', f));
+        try {
+            const res = await fetch(`${BASE_URL}/api/course/${encodeURIComponent(title)}/videos`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Videos added successfully!');
+                location.reload();
+            } else {
+                alert('Failed to add videos.');
+            }
+        } catch {
+            alert('Error uploading videos.');
+        }
+    };
+    input.click();
+}
+</script>
+</body>
+</html>

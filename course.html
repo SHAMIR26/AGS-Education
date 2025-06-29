@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Launch Course - AGS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Roboto', Arial, sans-serif; background: #f4f6fa; margin: 0; }
+        .container { max-width: 500px; margin: 3rem auto; background: #fff; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 8px #0001; }
+        h2 { text-align: center; color: #2d3e50; }
+        label { display: block; margin-top: 1rem; }
+        input, textarea, select { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
+        button { margin-top: 2rem; width: 100%; padding: 1rem; background: #2d3e50; color: #fff; border: none; border-radius: 25px; font-size: 1.1rem; cursor: pointer; }
+        button:hover { background: #22313f; }
+        .success { color: green; text-align: center; margin-top: 1rem; }
+        #allCoursesList { list-style-type: none; padding: 0; }
+        #allCoursesList li { padding: 0.5rem; border-bottom: 1px solid #ddd; }
+        .menu-icon {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            width: 30px;
+            height: 25px;
+            justify-content: space-between;
+            margin: 1rem;
+        }
+        .menu-icon span {
+            height: 4px;
+            background: #fff; /* <-- Change from #2d3e50 to #fff */
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+        nav {
+            position: fixed;
+            top: 0;
+            right: -220px;
+            width: 200px;
+            height: 100%;
+            background: #34495e;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            padding-top: 70px;
+            transition: right 0.3s;
+            z-index: 100;
+        }
+        nav.open {
+            right: 0;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            width: 100%;
+            display: block;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+        nav a:hover {
+            background: #22313f;
+        }
+        @media (min-width: 700px) {
+            nav { width: 250px; right: -270px; }
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #2d3e50; color: #fff; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+        <div class="logo" style="font-size: 2rem; font-weight: bold; letter-spacing: 2px;">AGS Education</div>
+        <div class="menu-icon" id="menuIcon" aria-label="Open navigation" tabindex="0" role="button">
+            <span style="width:100%"></span>
+            <span style="width:100%"></span>
+            <span style="width:100%"></span>
+        </div>
+    </header>
+    <nav id="sideNav" aria-label="Main navigation">
+        <span id="closeNav" style="font-size:2rem;cursor:pointer;padding:0 1rem;" aria-label="Close navigation" tabindex="0" role="button">&times;</span>
+        <a href="home.html" id="homeLink">Home</a>
+        <a href="registration.html" id="regLink">Registration</a>
+        <a href="login.html" id="loginLink">Log In</a>
+        <a href="course.html" id="allCoursesLink">All Courses</a>
+        <a href="class.html" id="myCoursesLink">My Courses</a>
+        <a href="account.html" id="accountLink">My Account</a>
+        <a href="logout.html" id="logoutLink" style="display:none;">Logout</a>
+    </nav>
+    <script>
+        const user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+        if (!user || (user.role !== 'Teacher' && user.role !== 'Admin')) {
+            window.location.href = "login.html";
+        }
+    </script>
+    <div class="container" id="launchContainer">
+        <h2>Launch a New Course</h2>
+        <form id="launchForm">
+            <label for="title">Course Title</label>
+            <input type="text" id="title" required>
+            <label for="desc">Description</label>
+            <textarea id="desc" required></textarea>
+            <label for="videos">Upload Playlist Videos</label>
+            <input type="file" id="videos" multiple accept="video/*">
+            <label for="prize">Course Prize (BDT)</label>
+            <input type="number" id="prize" required>
+            <label for="teacherName">Teacher Name</label>
+            <input type="text" id="teacherName" required>
+            <label for="launchedBy">Launched By</label>
+            <input type="text" id="launchedBy" required>
+            <button type="submit">Launch Course</button>
+        </form>
+        <div class="success" id="successMsg"></div>
+    </div>
+    <div class="container">
+        <h2>All Launched Courses</h2>
+        <ul id="allCoursesList"></ul>
+    </div>
+    <script src="home.js"></script>
+    <script>
+        const BASE_URL = window.location.origin.includes('localhost')
+    ? 'http://localhost:3000'
+    : window.location.origin;
+        document.addEventListener('DOMContentLoaded', async function() {
+        const form = document.getElementById('launchForm');
+        const successMsg = document.getElementById('successMsg');
+        const user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+        if (user) {
+            document.getElementById('teacherName').value = user.name || '';
+            document.getElementById('launchedBy').value = user.email || '';
+            document.getElementById('teacherName').readOnly = true;
+            document.getElementById('launchedBy').readOnly = true;
+        }
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const files = document.getElementById('videos').files;
+            if (!files.length) {
+                successMsg.style.color = "red";
+                successMsg.textContent = "Please select at least one video file.";
+                return;
+            }
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('desc', document.getElementById('desc').value);
+            formData.append('teacherName', user.name || '');
+            formData.append('launchedBy', user.email || '');
+            formData.append('prize', document.getElementById('prize').value);
+            for (let i = 0; i < files.length; i++) {
+                formData.append('videos', files[i]);
+            }
+            try {
+                const res = await fetch(`${BASE_URL}/api/course`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    successMsg.style.color = "green";
+                    successMsg.textContent = "Course launched and videos uploaded!";
+                    form.reset();
+                    document.getElementById('teacherName').value = user.name || '';
+                    document.getElementById('launchedBy').value = user.email || '';
+                    loadCourses();
+                } else {
+                    successMsg.style.color = "red";
+                    successMsg.textContent = data.error || "Error launching course.";
+                }
+            } catch {
+                successMsg.style.color = "red";
+                successMsg.textContent = "Error uploading course.";
+            }
+        });
+
+        async function loadCourses() {
+            const list = document.getElementById('allCoursesList');
+            try {
+                const res = await fetch(`${BASE_URL}/api/courses`);
+                const allCourses = await res.json();
+                if (!allCourses.length) {
+                    list.innerHTML = '<li style="color:#888;text-align:center;">No courses launched yet.</li>';
+                } else {
+                    list.innerHTML = allCourses.map(c =>
+                        `<li><b>${escapeHtml(c.title)}</b> by ${escapeHtml(c.teacherName)} - ${c.prize} BDT</li>`
+                    ).join('');
+                }
+            } catch {
+                list.innerHTML = '<li style="color:#c00;text-align:center;">Failed to load courses.</li>';
+            }
+        }
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                })[m];
+            });
+        }
+        loadCourses();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Roboto', Arial, sans-serif; background: #f4f6fa; margin: 0; }
+        .container { max-width: 400px; margin: 5rem auto; background: #fff; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 8px #0001; }
+        h2 { text-align: center; color: #2d3e50; }
+        label { display: block; margin-top: 1rem; }
+        input { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
+        button { margin-top: 2rem; width: 100%; padding: 1rem; background: #2d3e50; color: #fff; border: none; border-radius: 25px; font-size: 1.1rem; cursor: pointer; }
+        button:hover { background: #22313f; }
+        .error { color: red; text-align: center; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Panel Access</h2>
+        <form id="panelForm">
+            <label for="securityCode">Enter Security Code</label>
+            <input type="password" id="securityCode" required>
+            <button type="submit">Access Panel</button>
+        </form>
+        <div class="error" id="errorMsg"></div>
+    </div>
+    <script>
+        document.getElementById('panelForm').onsubmit = function(e) {
+            e.preventDefault();
+            const code = document.getElementById('securityCode').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const user = JSON.parse(localStorage.getItem('ags_user') || 'null');
+            if (!user || user.role !== 'Admin') {
+                errorMsg.textContent = "Only admin users can access the panel.";
+                return;
+            }
+            if (code === "110116") {
+                window.location.href = "admin.html";
+            } else {
+                errorMsg.textContent = "Invalid security code.";
+            }
+        }
+    </script>
+</body>
+</html>

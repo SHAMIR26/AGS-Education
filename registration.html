@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Registration - AGS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Roboto', Arial, sans-serif; background: #f4f6fa; margin: 0; }
+        .container { max-width: 400px; margin: 3rem auto; background: #fff; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 8px #0001; }
+        h2 { text-align: center; color: #2d3e50; }
+        label { display: block; margin-top: 1rem; }
+        input { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
+        button { margin-top: 2rem; width: 100%; padding: 1rem; background: #2d3e50; color: #fff; border: none; border-radius: 25px; font-size: 1.1rem; cursor: pointer; }
+        button:hover { background: #22313f; }
+        .success { color: green; text-align: center; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Student Registration</h2>
+        <form id="studentRegForm">
+            <label for="name">Name</label>
+            <input type="text" id="name" required>
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+            <label for="mobile">Mobile Number</label>
+            <input type="tel" id="mobile" pattern="880[0-9]{10}" placeholder="880xxxxxxxxxx" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" pattern="[0-9a-zA-Z]{8}" maxlength="8" required>
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" pattern="[0-9a-zA-Z]{8}" maxlength="8" required>
+            <button type="submit">Register</button>
+        </form>
+        <div class="success" id="successMsg"></div>
+        <div style="text-align:center;margin-top:2rem;">
+            <span>Already have an account?</span><br>
+            <a href="login.html" style="color:#2d3e50;text-decoration:underline;">Log In</a>
+        </div>
+    </div>
+    <script>
+const BASE_URL = window.location.origin.includes('localhost')
+    ? 'http://localhost:3000'
+    : window.location.origin;
+
+document.getElementById('studentRegForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const mobile = document.getElementById('mobile').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value.trim();
+    const successMsg = document.getElementById('successMsg');
+
+    if (password !== confirmPassword) {
+        successMsg.style.color = "red";
+        successMsg.textContent = "Passwords do not match!";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/register/student`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ name, email, mobile, password })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            successMsg.style.color = "red";
+            successMsg.textContent = data.error || "Registration failed!";
+            return;
+        }
+        // Save to localStorage for login
+        localStorage.setItem('ags_user', JSON.stringify({ name, email, mobile, password, role: "Student", purchasedCourses: [] }));
+        successMsg.style.color = "green";
+        successMsg.textContent = "Registration successful! You can now log in.";
+        this.reset();
+    } catch {
+        successMsg.style.color = "red";
+        successMsg.textContent = "Server error. Try again later.";
+    }
+}
+    </script>
+</body>
+</html>
